@@ -8,10 +8,16 @@ import * as path from 'path';
 import  session from 'express-session';
 import { json } from 'body-parser';
 import games from './../data/data.json';
+import cors from 'cors';
 
 const app = express();
 
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
+
+app.use(cors({
+  origin: 'http://localhost:4200',
+  credentials: true,
+}));
 
 app.use(json());
 app.use(session({
@@ -22,6 +28,14 @@ app.use(session({
 
 app.get('/api', (req, res) => {
   res.send({ message: 'Welcome to backend!' });
+});
+
+app.get('/api/check-auth', (req, res) => {
+  if (req.session.user) {
+    res.status(200).json({ authenticated: true });
+  } else {
+    res.status(401).json({ authenticated: false });
+  }
 });
 
 // Định nghĩa các route API ở đây
@@ -39,7 +53,7 @@ app.post('/api/login', (req, res) => {
 app.get('/api/games', (req, res) => {
   // Lọc các game không thuộc nhóm nào
   const filteredGames = games.filter(game => game.groups && game.groups.length > 0);
-  
+
   res.status(200).json(filteredGames);
 });
 
